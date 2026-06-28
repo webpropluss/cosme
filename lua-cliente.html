@@ -160,7 +160,7 @@
   .la-chips .ch-name{font-size:13.5px;color:var(--taupe-d);}
   .la-chips .ch-sub{font-size:11.5px;color:var(--brown);font-weight:600;}
   .la-input{display:flex;gap:8px;align-items:center;padding:12px;border-top:1px solid var(--line);background:var(--cream);}
-  .la-input input{flex:1;border:1px solid var(--line);border-radius:999px;background:#fff;padding:11px 15px;font-size:14px;font-family:var(--ui);color:var(--brown);outline:none;}
+  .la-input input{flex:1;border:1px solid var(--line);border-radius:999px;background:#fff;padding:11px 15px;font-size:16px;font-family:var(--ui);color:var(--brown);outline:none;}
   .la-input button{width:42px;height:42px;border-radius:50%;background:var(--taupe-d);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;}
 
   @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto;}}
@@ -326,8 +326,15 @@
   var SUPABASE_ANON_KEY = "sb_publishable_opntaMbjppwpzMWE5I14Ng_W7j_f--2";
   /* └────────────────────────────────────────────────────────────┘ */
   var sb=null; try{ if(window.supabase && SUPABASE_URL.indexOf("TU-")===-1) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); }catch(e){}
-  /* ── imágenes editables desde el admin ── */
-  (async function(){ if(!sb) return; try{ var ri=await sb.from("site_images").select("key,url,caption"); (ri.data||[]).forEach(function(row){ if(!row) return; if(row.url) document.querySelectorAll('[data-img="'+row.key+'"]').forEach(function(im){ im.src=row.url; }); if(row.caption){ document.querySelectorAll('[data-cap="'+row.key+'"]').forEach(function(c){ c.textContent=row.caption; c.classList.add("on"); }); } }); }catch(e){} })();
+  var bizPhone="59176853774";
+  function waNorm(raw){ var d=(raw||"").replace(/\D/g,""); if(!d) return ""; if(d.indexOf("591")===0) return d; if(d.length<=8) return "591"+d; return d; }
+  function waDisplay(d){ if(!d) return ""; return (d.indexOf("591")===0) ? ("+591 "+d.slice(3)) : ("+"+d); }
+  function applyBizPhone(){ var n=waNorm(bizPhone); var dir=document.getElementById("contactDirect"); if(dir) dir.textContent=waDisplay(n); }
+  /* ── imágenes editables + número de contacto desde el admin ── */
+  (async function(){ if(!sb) return;
+    try{ var ri=await sb.from("site_images").select("key,url,caption"); (ri.data||[]).forEach(function(row){ if(!row) return; if(row.url) document.querySelectorAll('[data-img="'+row.key+'"]').forEach(function(im){ im.src=row.url; }); if(row.caption){ document.querySelectorAll('[data-cap="'+row.key+'"]').forEach(function(c){ c.textContent=row.caption; c.classList.add("on"); }); } }); }catch(e){}
+    try{ var rc=await sb.from("site_config").select("key,value"); (rc.data||[]).forEach(function(c){ if(c.key==="whatsapp" && c.value){ bizPhone=c.value; } }); applyBizPhone(); }catch(e){}
+  })();
 
   var SERVICES=[
     {name:"Ducha solar \u2013 sesi\u00f3n",price:35,kw:["ducha","solar","bronce"]},
@@ -468,7 +475,7 @@
     var el=document.getElementById(id); if(el) el.addEventListener("click",function(e){ e.preventDefault(); openAgent(); });
   });
   var direct=document.getElementById("contactDirect");
-  if(direct){ direct.style.cursor="pointer"; direct.addEventListener("click",function(){ window.open("https://wa.me/59176853774?text="+encodeURIComponent("Hola LUA \uD83C\uDF19"),"_blank","noreferrer"); }); }
+  if(direct){ direct.style.cursor="pointer"; direct.addEventListener("click",function(){ window.open("https://wa.me/"+waNorm(bizPhone)+"?text="+encodeURIComponent("Hola LUA \uD83C\uDF19"),"_blank","noreferrer"); }); }
 
   /* ── nav solid on scroll ── */
   var nav=document.getElementById("nav");
