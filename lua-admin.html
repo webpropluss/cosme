@@ -165,7 +165,13 @@
   .img-empty{border:1px dashed var(--taupe);border-radius:12px;padding:26px;text-align:center;color:var(--inkSoft);font-size:13px;line-height:1.5;}
   .img-empty span{font-size:11px;}
   .fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 12px;font-size:14px;font-family:var(--ui);color:var(--brown);outline:none;resize:vertical;box-sizing:border-box;}
-  @media(max-width:760px){.svc-row{flex-wrap:wrap;}.svc-price{order:-1;}}
+  @media(max-width:760px){
+    .svc-row{flex-wrap:wrap;align-items:flex-start;row-gap:8px;}
+    .svc-main{flex:1 1 100%;order:1;}
+    .svc-price{order:0;flex:0 0 auto;font-size:20px;}
+    .svc-acts{order:2;flex:1 1 100%;justify-content:flex-start;}
+    .svc-acts button{flex:1;min-width:0;text-align:center;padding:9px 8px;}
+  }
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--espresso);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:120;opacity:0;transition:opacity .3s;box-shadow:0 10px 30px -8px rgba(16,24,40,.5);}
   .toast.show{opacity:1;}
 
@@ -840,8 +846,31 @@ async function loadAjustes(){
       '<div class="fld"><label>WhatsApp del negocio</label><input id="cfg_wa" value="'+esc(cfg.whatsapp||"")+'" placeholder="Ej: 59176853774 o 76853774"/></div>'+
       '<p style="color:var(--inkSoft);font-size:12.5px;margin:-4px 0 14px;line-height:1.5">Es el número de contacto que se muestra en la web del cliente. Si cambiás de teléfono o asignás otro, lo actualizás acá y se cambia solo en el sitio.</p>'+
       '<button class="btn" id="cfg_save" style="width:100%">Guardar</button>'+
+    '</div>'+
+    '<div class="panel" style="max-width:520px">'+
+      '<div class="label" style="margin-bottom:12px">Mi cuenta</div>'+
+      '<div class="fld"><label>Nueva contraseña</label><input id="pw_new" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/></div>'+
+      '<div class="fld"><label>Repetir contraseña</label><input id="pw_new2" type="password" placeholder="Repetí la nueva contraseña" autocomplete="new-password"/></div>'+
+      '<p class="err" id="pw_err" style="display:none"></p>'+
+      '<p style="color:var(--inkSoft);font-size:12.5px;margin:-2px 0 14px;line-height:1.5">Cambiás tu contraseña de acceso al panel. La sesión sigue abierta después de cambiarla.</p>'+
+      '<button class="btn" id="pw_save" style="width:100%">Cambiar contraseña</button>'+
     '</div>'
   );
+}
+async function savePassword(){
+  var p1=document.getElementById("pw_new").value||"";
+  var p2=document.getElementById("pw_new2").value||"";
+  var err=document.getElementById("pw_err");
+  function fail(m){ if(err){ err.textContent=m; err.style.display="block"; } }
+  if(err) err.style.display="none";
+  if(p1.length<6){ fail("La contraseña debe tener al menos 6 caracteres."); return; }
+  if(p1!==p2){ fail("Las contraseñas no coinciden."); return; }
+  document.getElementById("pw_save").disabled=true;
+  var r=await sb.auth.updateUser({password:p1});
+  document.getElementById("pw_save").disabled=false;
+  if(r.error){ fail(r.error.message); return; }
+  document.getElementById("pw_new").value=""; document.getElementById("pw_new2").value="";
+  toast("Contraseña actualizada ✓");
 }
 async function saveAjustes(){
   var wa=(document.getElementById("cfg_wa").value||"").trim();
@@ -896,6 +925,7 @@ document.body.addEventListener("click", function(e){
   else if(e.target.id==="cj_save") saveCaja();
   else if(e.target.id==="sv_save") saveSvc();
   else if(e.target.id==="cfg_save") saveAjustes();
+  else if(e.target.id==="pw_save") savePassword();
 });
 document.body.addEventListener("change", function(e){
   if(e.target.classList && e.target.classList.contains("ci-svc")){
